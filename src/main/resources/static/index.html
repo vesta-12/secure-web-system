@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная</title>
+</head>
+<body>
+<h1>Mini Blog</h1>
+
+<p>Текущий пользователь: {{username}}</p>
+
+<nav>
+    <a href="/login">Login</a> |
+    <a href="/register">Register</a> |
+    <a href="/logout">Logout</a>
+</nav>
+
+<hr>
+
+<h2>Добавить комментарий</h2>
+
+<form action="/comment" method="post">
+    <textarea name="text" rows="4" cols="50" placeholder="Введите комментарий"></textarea>
+    <br><br>
+    <button type="submit">Отправить</button>
+</form>
+
+<hr>
+
+<h2>Комментарии</h2>
+
+<div>
+    {{comments}}
+</div>
+
+</body>
+</html>
