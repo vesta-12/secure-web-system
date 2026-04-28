@@ -2,32 +2,32 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Главная</title>
+    <title>Main</title>
 </head>
 <body>
-<h1>Mini Blog</h1>
+<h1>secure-web-system</h1>
 
-<p>Текущий пользователь: {{username}}</p>
+<p>Current user: {{username}}</p>
 
 <nav>
-    <a href="/login">Login</a> |
-    <a href="/register">Register</a> |
-    <a href="/logout">Logout</a>
+    <a href="/login">login</a> |
+    <a href="/register">register</a> |
+    <a href="/logout">logout</a>
 </nav>
 
 <hr>
 
-<h2>Добавить комментарий</h2>
+<h2>Add comment</h2>
 
 <form action="/comment" method="post">
-    <textarea name="text" rows="4" cols="50" placeholder="Введите комментарий"></textarea>
+    <textarea name="text" rows="4" cols="50" placeholder="Write smth"></textarea>
     <br><br>
-    <button type="submit">Отправить</button>
+    <button type="submit">Send</button>
 </form>
 
 <hr>
 
-<h2>Комментарии</h2>
+<h2>Comments</h2>
 
 <div>
     {{comments}}

@@ -5,9 +5,10 @@ import com.sun.net.httpserver.HttpHandler;
 import org.example.Database;
 import org.example.util.HttpUtils;
 import org.example.util.TemplateUtils;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
-import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.Map;
 
 public class RegisterHandler implements HttpHandler {
@@ -26,18 +27,26 @@ public class RegisterHandler implements HttpHandler {
             String username = form.get("username");
             String password = form.get("password");
 
-            try (Connection conn = Database.getConnection();
-                 Statement stmt = conn.createStatement()) {
+            if (username == null || username.isBlank() || password == null || password.length() < 6) {
+                HttpUtils.sendHtml(exchange, "<h1>Invalid input</h1><p>Password must be at least 6 characters.</p><a href='/register'>Back</a>");
+                return;
+            }
 
-                String sql = "INSERT INTO users(username, password) VALUES ('"
-                        + username + "', '" + password + "')";
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
 
-                stmt.executeUpdate(sql);
+            try (Connection conn = Database.getConnection()) {
+                String sql = "INSERT INTO users(username, password) VALUES (?, ?)";
+
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setString(1, username);
+                stmt.setString(2, hashedPassword);
+
+                stmt.executeUpdate();
 
                 HttpUtils.redirect(exchange, "/login");
 
             } catch (Exception e) {
-                HttpUtils.sendHtml(exchange, "<h1>Registration error</h1><p>" + e.getMessage() + "</p>");
+                HttpUtils.sendHtml(exchange, "<h1>Registration error</h1><p>User may already exist.</p>");
             }
         }
     }

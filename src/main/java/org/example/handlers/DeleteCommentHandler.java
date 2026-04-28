@@ -8,10 +8,9 @@ import org.example.util.HttpUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.Map;
 
-public class CommentHandler implements HttpHandler {
+public class DeleteCommentHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws java.io.IOException {
@@ -29,38 +28,21 @@ public class CommentHandler implements HttpHandler {
         }
 
         Map<String, String> form = HttpUtils.parseForm(exchange);
-        String text = form.get("text");
-
-        if (text == null || text.isBlank()) {
-            HttpUtils.redirect(exchange, "/");
-            return;
-        }
+        String id = form.get("id");
 
         try (Connection conn = Database.getConnection()) {
-            String userSql = "SELECT id FROM users WHERE username = ?";
+            String sql = "DELETE FROM comments WHERE id = ? AND username = ?";
 
-            PreparedStatement userStmt = conn.prepareStatement(userSql);
-            userStmt.setString(1, username);
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, Integer.parseInt(id));
+            stmt.setString(2, username);
 
-            ResultSet userRs = userStmt.executeQuery();
-
-            if (userRs.next()) {
-                int userId = userRs.getInt("id");
-
-                String sql = "INSERT INTO comments(user_id, username, text) VALUES (?, ?, ?)";
-
-                PreparedStatement stmt = conn.prepareStatement(sql);
-                stmt.setInt(1, userId);
-                stmt.setString(2, username);
-                stmt.setString(3, text);
-
-                stmt.executeUpdate();
-            }
+            stmt.executeUpdate();
 
             HttpUtils.redirect(exchange, "/");
 
         } catch (Exception e) {
-            HttpUtils.sendHtml(exchange, "<h1>Comment error</h1>");
+            HttpUtils.sendHtml(exchange, "<h1>Delete error</h1>");
         }
     }
 }

@@ -10,7 +10,15 @@ import java.util.Map;
 
 public class HttpUtils {
 
+    public static void addSecurityHeaders(HttpExchange exchange) {
+        exchange.getResponseHeaders().add("Content-Security-Policy", "default-src 'self'; script-src 'self'; object-src 'none'");
+        exchange.getResponseHeaders().add("X-Frame-Options", "DENY");
+        exchange.getResponseHeaders().add("X-Content-Type-Options", "nosniff");
+        exchange.getResponseHeaders().add("Referrer-Policy", "no-referrer");
+    }
+
     public static void sendHtml(HttpExchange exchange, String html) throws java.io.IOException {
+        addSecurityHeaders(exchange);
         exchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
 
         byte[] response = html.getBytes(StandardCharsets.UTF_8);
@@ -22,6 +30,7 @@ public class HttpUtils {
     }
 
     public static void redirect(HttpExchange exchange, String location) throws java.io.IOException {
+        addSecurityHeaders(exchange);
         exchange.getResponseHeaders().add("Location", location);
         exchange.sendResponseHeaders(302, -1);
     }
@@ -46,9 +55,7 @@ public class HttpUtils {
     public static String getCookie(HttpExchange exchange, String name) {
         String cookieHeader = exchange.getRequestHeaders().getFirst("Cookie");
 
-        if (cookieHeader == null) {
-            return null;
-        }
+        if (cookieHeader == null) return null;
 
         String[] cookies = cookieHeader.split(";");
 
@@ -61,5 +68,16 @@ public class HttpUtils {
         }
 
         return null;
+    }
+
+    public static String escapeHtml(String input) {
+        if (input == null) return "";
+
+        return input
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#x27;");
     }
 }

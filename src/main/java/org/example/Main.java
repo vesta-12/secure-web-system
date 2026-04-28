@@ -16,10 +16,11 @@ public class Main {
         server.createContext("/login", new LoginHandler());
         server.createContext("/logout", new LogoutHandler());
         server.createContext("/comment", new CommentHandler());
+        server.createContext("/delete-comment", new DeleteCommentHandler());
 
         server.setExecutor(null);
         server.start();
 
-        System.out.println("Server started: http://localhost:8080");
+        System.out.println("Secure server started: http://localhost:8080");
     }
 }

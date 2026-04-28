@@ -6,10 +6,11 @@ import org.example.Database;
 import org.example.SessionManager;
 import org.example.util.HttpUtils;
 import org.example.util.TemplateUtils;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.Map;
 
 public class LoginHandler implements HttpHandler {
@@ -28,29 +29,34 @@ public class LoginHandler implements HttpHandler {
             String username = form.get("username");
             String password = form.get("password");
 
-            try (Connection conn = Database.getConnection();
-                 Statement stmt = conn.createStatement()) {
+            try (Connection conn = Database.getConnection()) {
+                String sql = "SELECT * FROM users WHERE username = ?";
 
-                String sql = "SELECT * FROM users WHERE username = '"
-                        + username + "' AND password = '" + password + "'";
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setString(1, username);
 
-                ResultSet rs = stmt.executeQuery(sql);
+                ResultSet rs = stmt.executeQuery();
 
                 if (rs.next()) {
-                    String sessionId = SessionManager.createSession(username);
+                    String hashedPassword = rs.getString("password");
 
-                    exchange.getResponseHeaders().add(
-                            "Set-Cookie",
-                            "SESSIONID=" + sessionId + "; Path=/"
-                    );
+                    if (BCrypt.checkpw(password, hashedPassword)) {
+                        String sessionId = SessionManager.createSession(username);
 
-                    HttpUtils.redirect(exchange, "/");
-                } else {
-                    HttpUtils.sendHtml(exchange, "<h1>Invalid username or password</h1><a href='/login'>Back</a>");
+                        exchange.getResponseHeaders().add(
+                                "Set-Cookie",
+                                "SESSIONID=" + sessionId + "; Path=/; HttpOnly; SameSite=Strict"
+                        );
+
+                        HttpUtils.redirect(exchange, "/");
+                        return;
+                    }
                 }
 
+                HttpUtils.sendHtml(exchange, "<h1>Invalid username or password</h1><a href='/login'>Back</a>");
+
             } catch (Exception e) {
-                HttpUtils.sendHtml(exchange, "<h1>Login error</h1><p>" + e.getMessage() + "</p>");
+                HttpUtils.sendHtml(exchange, "<h1>Login error</h1>");
             }
         }
     }
